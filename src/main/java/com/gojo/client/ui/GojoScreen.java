@@ -7,6 +7,9 @@ import com.gojo.client.module.Modules;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import java.util.*;
 
 public final class GojoScreen extends Screen {
@@ -95,7 +98,7 @@ public final class GojoScreen extends Screen {
         g.drawString(font,"FPS: "+mc.getFps(),rx+12,y+198,TEXT,false);
         if(mc.player!=null){
             g.drawString(font,"XYZ: "+(int)mc.player.getX()+" "+(int)mc.player.getY()+" "+(int)mc.player.getZ(),rx+12,y+218,TEXT,false);
-            g.drawString(font,"Mundo: "+(mc.level==null?"-":mc.level.dimension().location().getPath()),rx+12,y+238,MUTED,false);
+            g.drawString(font,"Mundo: "+(mc.level==null?"-":mc.level.dimension().toString()),rx+12,y+238,MUTED,false);
         } else g.drawString(font,"Mundo: menu",rx+12,y+218,MUTED,false);
         g.drawString(font,"Módulos: "+Modules.all().size(),rx+12,y+258,TEXT,false);
         g.drawString(font,"Fabric • Java 21",rx+12,y+278,MUTED,false);
@@ -106,8 +109,10 @@ public final class GojoScreen extends Screen {
         super.render(g,mouseX,mouseY,delta);
     }
 
-    @Override public boolean mouseClicked(double mx,double my,int button){
-        if(button!=0)return super.mouseClicked(mx,my,button);
+    @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick){
+        double mx=event.x(), my=event.y();
+        int button=event.button();
+        if(button!=0)return super.mouseClicked(event,doubleClick);
         int navY=y+96;
         for(int i=0;i<Category.values().length;i++){
             int ny=navY+i*39;
@@ -123,15 +128,17 @@ public final class GojoScreen extends Screen {
         searchFocused=mx>=mainX&&mx<=mainX+mainW&&my>=y+17&&my<=y+54;
         return true;
     }
-    @Override public boolean charTyped(char c,int modifiers){
-        if(searchFocused&&!Character.isISOControl(c)){search+=c;return true;}
-        return super.charTyped(c,modifiers);
+    @Override public boolean charTyped(CharacterEvent event){
+        int codepoint=event.codepoint();
+        if(searchFocused&&!Character.isISOControl(codepoint)){search+=new String(Character.toChars(codepoint));return true;}
+        return super.charTyped(event);
     }
-    @Override public boolean keyPressed(int key,int scanCode,int modifiers){
+    @Override public boolean keyPressed(KeyEvent event){
+        int key=event.key();
         if(searchFocused&&key==256){searchFocused=false;return true;}
         if(searchFocused&&key==259&&!search.isEmpty()){search=search.substring(0,search.length()-1);return true;}
         if(key==256){onClose();return true;}
-        return super.keyPressed(key,scanCode,modifiers);
+        return super.keyPressed(event);
     }
     @Override public boolean isPauseScreen(){return false;}
     @Override public void onClose(){ConfigManager.save();super.onClose();}
