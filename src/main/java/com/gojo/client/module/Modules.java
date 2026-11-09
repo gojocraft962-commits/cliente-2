@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.EntityAnchorArgument;
 import java.util.*;
 
 public final class Modules {
@@ -70,15 +69,21 @@ public final class Modules {
   LivingEntity target=mc.level.getEntitiesOfClass(LivingEntity.class,mc.player.getBoundingBox().inflate(range),
     e->e!=mc.player&&e.isAlive()&&(!mobsOnly||e instanceof Mob))
     .stream().min(Comparator.comparingDouble(e->e.distanceToSqr(mc.player))).orElse(null);
-  if(target!=null)mc.player.lookAt(EntityAnchorArgument.Anchor.EYES,target.getEyePosition());
+  if(target!=null){
+   Vec3 diff=target.getEyePosition().subtract(mc.player.getEyePosition());
+   double horizontal=Math.sqrt(diff.x*diff.x+diff.z*diff.z);
+   float yaw=(float)(Math.toDegrees(Math.atan2(diff.z,diff.x))-90.0);
+   float pitch=(float)(-Math.toDegrees(Math.atan2(diff.y,horizontal)));
+   mc.player.setYRot(yaw); mc.player.setXRot(pitch); mc.player.setYHeadRot(yaw);
+  }
  }
  private static void autoClick(Minecraft mc,double cps){
   if(mc.player==null||mc.gameMode==null||mc.hitResult==null||!mc.options.keyAttack.isDown()||mc.screen!=null){clickDelay=0;return;}
   if(clickDelay>0){clickDelay--;return;}
   if(mc.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity living && living.isAlive())
     mc.gameMode.attack(mc.player,living);
-  else if(mc.hitResult.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK)
-    mc.gameMode.attack(mc.player);
+  else if(mc.hitResult instanceof net.minecraft.world.phys.BlockHitResult blockHit)
+    mc.gameMode.startDestroyBlock(blockHit.getBlockPos(),blockHit.getDirection());
   clickDelay=Math.max(1,(int)Math.round(20.0/Math.max(1.0,cps)));
  }
  private static void fly(Minecraft mc,double speed){
