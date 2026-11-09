@@ -1,0 +1,14 @@
+package com.gojo.client.module;
+import net.minecraft.client.Minecraft; import java.util.*;
+public final class Modules {
+ private static final List<Module> ALL=new ArrayList<>(); private Modules(){}
+ public static void init(){ALL.clear();
+ add(new Module("Auto Sprint","Corre automaticamente quando estiver andando.",Category.MOVEMENT){@Override public void onTick(Minecraft mc){if(mc.player!=null&&mc.options.keyUp.isDown()&&!mc.player.isCrouching())mc.player.setSprinting(true);}});
+ add(new Module("Fullbright","Aumenta a gama visual localmente.",Category.RENDER){private double previous=1.0;@Override public void onEnable(){Minecraft mc=Minecraft.getInstance();previous=mc.options.gamma().get();mc.options.gamma().set(16.0);}@Override public void onDisable(){Minecraft.getInstance().options.gamma().set(previous);}});
+ add(new Module("Auto Respawn","Solicita respawn quando a tela de morte estiver aberta.",Category.PLAYER){@Override public void onTick(Minecraft mc){if(mc.screen instanceof net.minecraft.client.gui.screens.DeathScreen&&mc.player!=null)mc.player.respawn();}});
+ String[][] entries={{"COMBAT","Reach Display","Mostra a distância até o alvo focado."},{"COMBAT","Target Info","Exibe informações do alvo focado."},{"MOVEMENT","Speed Info","Indicador visual de velocidade."},{"RENDER","Tracers","Linhas visuais para entidades próximas."},{"RENDER","Nametags","Nomes e informações de entidades."},{"RENDER","Block Indicator","Destaca o bloco observado."},{"PLAYER","Coordinates","Exibe coordenadas do jogador."},{"PLAYER","Auto Tool","Seleciona ferramenta adequada (experimental)."},{"PLAYER","Inventory Info","Informações do inventário."},{"WORLD","Block Info","Informações do bloco observado."},{"WORLD","Entity Viewer","Lista entidades próximas."},{"WORLD","Environment Info","Informações do bioma e dimensão."},{"HUD","FPS","Exibe os quadros por segundo."},{"HUD","Ping","Exibe latência quando disponível."},{"HUD","Durability","Exibe durabilidade dos equipamentos."},{"HUD","Clock","Exibe relógio local."},{"HUD","Server Info","Exibe informações da sessão."}};
+ for(String[] e:entries)add(new Module(e[1],e[2],Category.valueOf(e[0])){});
+ }
+ private static void add(Module m){ALL.add(m);} public static List<Module> all(){return Collections.unmodifiableList(ALL);} public static List<Module> in(Category c){return ALL.stream().filter(m->m.category()==c).toList();}
+ public static void tick(Minecraft client){for(Module m:ALL)if(m.enabled())m.onTick(client);} public static Module find(String name){return ALL.stream().filter(m->m.name().equalsIgnoreCase(name)).findFirst().orElse(null);}
+}
