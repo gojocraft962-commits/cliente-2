@@ -17,6 +17,7 @@ public final class GojoScreen extends Screen {
     private String search = "";
     private int x, y, w, h, sidebar, right;
     private boolean searchFocused;
+    private int page=0;
     private static final int BG=0xF0080A12, PANEL=0xFF10121D, CARD=0xFF171A28;
     private static final int PURPLE=0xFF8B35FF, PURPLE_DARK=0xFF4B16A8;
     private static final int TEXT=0xFFF5F3FF, MUTED=0xFFAAA5C2, LINE=0xFF29243D;
@@ -69,7 +70,9 @@ public final class GojoScreen extends Screen {
         g.drawString(font,"Ative e configure os módulos do cliente",mainX,y+88,MUTED,false);
 
         // Module cards
-        List<Module> modules=visibleModules();
+        List<Module> allVisible=visibleModules();
+        int pageCount=Math.max(1,(allVisible.size()+11)/12); page=Math.min(page,pageCount-1);
+        List<Module> modules=allVisible.subList(Math.min(page*12,allVisible.size()),Math.min(page*12+12,allVisible.size()));
         int gap=10, cols=3, cardW=Math.max(110,(mainW-gap*(cols-1))/cols), cardH=90;
         for(int i=0;i<modules.size();i++){
             Module m=modules.get(i); int col=i%cols,row=i/cols;
@@ -92,6 +95,7 @@ public final class GojoScreen extends Screen {
             }
         }
         if(modules.isEmpty())g.drawString(font,"Nenhum módulo encontrado.",mainX,y+126,MUTED,false);
+        g.drawString(font,"Página "+(page+1)+" / "+pageCount+"  •  Use Page Up / Page Down",mainX,y+h-24,MUTED,false);
 
         // Right information rail
         int rx=x+w-right+14, rw=right-28;
@@ -123,11 +127,13 @@ public final class GojoScreen extends Screen {
         int navY=y+96;
         for(int i=0;i<Category.values().length;i++){
             int ny=navY+i*39;
-            if(mx>=x+10&&mx<=x+sidebar-10&&my>=ny-7&&my<=ny+24){selected=Category.values()[i];return true;}
+            if(mx>=x+10&&mx<=x+sidebar-10&&my>=ny-7&&my<=ny+24){selected=Category.values()[i];page=0;return true;}
         }
         int mainX=x+sidebar+18, mainW=w-sidebar-right-36, cols=3, gap=10;
         int cardW=Math.max(110,(mainW-gap*2)/3),cardH=90;
-        List<Module> modules=visibleModules();
+        List<Module> allVisible=visibleModules();
+        int pageCount=Math.max(1,(allVisible.size()+11)/12); page=Math.min(page,pageCount-1);
+        List<Module> modules=allVisible.subList(Math.min(page*12,allVisible.size()),Math.min(page*12+12,allVisible.size()));
         for(int i=0;i<modules.size();i++){
             int col=i%cols,row=i/cols,cx=mainX+col*(cardW+gap),cy=y+108+row*(cardH+10);
             if(mx>=cx&&mx<=cx+cardW&&my>=cy&&my<=cy+cardH){
@@ -143,13 +149,15 @@ public final class GojoScreen extends Screen {
     }
     @Override public boolean charTyped(CharacterEvent event){
         int codepoint=event.codepoint();
-        if(searchFocused&&!Character.isISOControl(codepoint)){search+=new String(Character.toChars(codepoint));return true;}
+        if(searchFocused&&!Character.isISOControl(codepoint)){search+=new String(Character.toChars(codepoint));page=0;return true;}
         return super.charTyped(event);
     }
     @Override public boolean keyPressed(KeyEvent event){
         int key=event.key();
         if(searchFocused&&key==256){searchFocused=false;return true;}
-        if(searchFocused&&key==259&&!search.isEmpty()){search=search.substring(0,search.length()-1);return true;}
+        if(searchFocused&&key==259&&!search.isEmpty()){search=search.substring(0,search.length()-1);page=0;return true;}
+        if(key==266){page=Math.max(0,page-1);return true;}
+        if(key==267){int count=Math.max(1,(visibleModules().size()+11)/12);page=Math.min(count-1,page+1);return true;}
         if(key==256){onClose();return true;}
         return super.keyPressed(event);
     }
