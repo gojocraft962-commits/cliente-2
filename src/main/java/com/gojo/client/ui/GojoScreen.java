@@ -18,6 +18,7 @@ public final class GojoScreen extends Screen {
     private int x, y, w, h, sidebar, right;
     private boolean searchFocused;
     private int page=0;
+    private float menuScale=1.0f;
     private static final int BG=0xF0080A12, PANEL=0xFF10121D, CARD=0xFF171A28;
     private static final int PURPLE=0xFF8B35FF, PURPLE_DARK=0xFF4B16A8;
     private static final int TEXT=0xFFF5F3FF, MUTED=0xFFAAA5C2, LINE=0xFF29243D;
@@ -25,7 +26,7 @@ public final class GojoScreen extends Screen {
     public GojoScreen(){ super(Component.literal("GOJO CLIENT")); }
 
     @Override protected void init() {
-        w=Math.max(1,Math.min(1160,width-32)); h=Math.max(1,Math.min(610,height-32));
+        w=Math.max(1,Math.min((int)(1160*menuScale),width-32)); h=Math.max(1,Math.min((int)(610*menuScale),height-32));
         x=(width-w)/2; y=(height-h)/2; sidebar=184; right=220;
     }
 
@@ -101,7 +102,7 @@ public final class GojoScreen extends Screen {
         // Right information rail
         int rx=x+w-right+14, rw=right-28;
         g.fill(rx,y+18,rx+rw,y+148,CARD);
-        g.drawCenteredString(font,"GOJO CLIENT",rx+rw/2,y+38,PURPLE);
+        // Menu size controls: minus shrinks, plus enlarges the whole client window.\n        int sizeBtnY=y+18, minusX=x+w-78, plusX=x+w-48;\n        g.fill(minusX,sizeBtnY,minusX+22,sizeBtnY+18,0xFF343044);\n        g.fill(plusX,sizeBtnY,plusX+22,sizeBtnY+18,0xFF343044);\n        g.drawCenteredString(font,"-",minusX+11,sizeBtnY+5,TEXT);\n        g.drawCenteredString(font,"+",plusX+11,sizeBtnY+5,TEXT);\n        g.drawCenteredString(font,"GOJO CLIENT",rx+rw/2,y+42,PURPLE);
         g.drawCenteredString(font,"Mais desempenho.",rx+rw/2,y+70,TEXT);
         g.drawCenteredString(font,"Mais controlo.",rx+rw/2,y+86,TEXT);
         g.fill(rx,y+160,rx+rw,y+310,CARD);
