@@ -35,12 +35,12 @@ public final class Modules {
   add(new Module("Fly","Voo local experimental; pode ser corrigido pelo servidor.",Category.MOVEMENT){ {configure(1.0,0.2,3.0,0.2);} @Override public void onTick(Minecraft mc){fly(mc,value());} });
   add(new Module("Scaffold","Tenta colocar um bloco sob os pés ao caminhar.",Category.MOVEMENT){ {configure(1.0,1.0,4.0,1.0);} @Override public void onTick(Minecraft mc){scaffold(mc);} });
 
-  add(new Module("Player ESP","Realça jogadores com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.player.Player && e!=mc.player);}@Override public void onDisable(){restoreGlow();}});
-  add(new Module("Mob ESP","Realça mobs com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof Mob);}@Override public void onDisable(){restoreGlow();}});
-  add(new Module("Entity ESP","Realça entidades vivas próximas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}@Override public void onDisable(){restoreGlow();}});
-  add(new Module("Item ESP","Realça itens largados no mundo.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.item.ItemEntity);}@Override public void onDisable(){restoreGlow();}});
-  add(new Module("Tracers","Realce por brilho de entidades; linhas 3D ainda não implementadas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}@Override public void onDisable(){restoreGlow();}});
-  add(new Module("Nametags","Mantém nomes padrão e realça entidades.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}@Override public void onDisable(){restoreGlow();}});
+  add(new Module("Player ESP","Realça jogadores com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.player.Player && e!=mc.player);}});
+  add(new Module("Mob ESP","Realça mobs com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof Mob);}});
+  add(new Module("Entity ESP","Realça entidades vivas próximas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
+  add(new Module("Item ESP","Realça itens largados no mundo.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.item.ItemEntity);}});
+  add(new Module("Tracers","Realce por brilho de entidades; linhas 3D ainda não implementadas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
+  add(new Module("Nametags","Mantém nomes padrão e realça entidades.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
   add(new Module("Block Indicator","Destaca o bloco observado.",Category.RENDER){});
   add(new Module("Reach Display","Mostra a distância até o alvo focado.",Category.COMBAT){});
   add(new Module("Target Info","Exibe informações do alvo focado.",Category.COMBAT){});
@@ -158,13 +158,23 @@ public final class Modules {
   mc.gameMode.useItemOn(mc.player,InteractionHand.MAIN_HAND,bhr);
   inv.setSelectedSlot(old); scaffoldDelay=3;
  }
- private static void glowEntities(Minecraft mc,java.util.function.Predicate<Entity> filter){
-  if(mc.player==null||mc.level==null)return;
-  for(Entity e:mc.level.entitiesForRendering())if(e!=mc.player&&filter.test(e)){
-    GLOW_STATE.putIfAbsent(e,e.isCurrentlyGlowing());
-    e.setGlowingTag(true);
+ private static void updateGlow(Minecraft mc){
+  if(mc.player==null||mc.level==null){restoreGlow();return;}
+  boolean players=enabled("Player ESP"), mobs=enabled("Mob ESP");
+  boolean entities=enabled("Entity ESP"), items=enabled("Item ESP");
+  boolean tracers=enabled("Tracers"), nametags=enabled("Nametags");
+  for(Entity e:mc.level.entitiesForRendering()){
+   boolean shouldGlow=e!=mc.player&&(
+    (players&&e instanceof net.minecraft.world.entity.player.Player)||
+    (mobs&&e instanceof Mob)||
+    (entities&&e instanceof LivingEntity)||
+    (items&&e instanceof net.minecraft.world.entity.item.ItemEntity)||
+    ((tracers||nametags)&&e instanceof LivingEntity));
+   if(shouldGlow){GLOW_STATE.putIfAbsent(e,e.isCurrentlyGlowing());e.setGlowingTag(true);}
+   else {Boolean previous=GLOW_STATE.remove(e);if(previous!=null)e.setGlowingTag(previous);}
   }
  }
+ private static boolean enabled(String name){Module m=find(name);return m!=null&&m.enabled();}
  private static void restoreGlow(){
   for(var entry:GLOW_STATE.entrySet())if(entry.getKey()!=null)entry.getKey().setGlowingTag(entry.getValue());
   GLOW_STATE.clear();
@@ -172,6 +182,9 @@ public final class Modules {
  private static void add(Module m){ALL.add(m);}
  public static List<Module> all(){return Collections.unmodifiableList(ALL);}
  public static List<Module> in(Category c){return ALL.stream().filter(m->m.category()==c).toList();}
- public static void tick(Minecraft client){for(Module m:ALL)if(m.enabled())m.onTick(client);}
+ public static void tick(Minecraft client){
+  for(Module m:ALL)if(m.enabled())m.onTick(client);
+  updateGlow(client);
+ }
  public static Module find(String name){return ALL.stream().filter(m->m.name().equalsIgnoreCase(name)).findFirst().orElse(null);}
 }
