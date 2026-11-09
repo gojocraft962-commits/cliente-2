@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "gojoclient",
+  "version": "${version}",
+  "name": "GOJO CLIENT",
+  "description": "Cliente modular para Minecraft Java 1.21.11 com interface própria.",
+  "authors": ["GOJO CLIENT"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": { "client": ["com.gojo.client.GojoClient"] },
+  "depends": { "fabricloader": ">=0.18.1", "minecraft": "1.21.11", "java": ">=21", "fabric-api": "*" }
+}
