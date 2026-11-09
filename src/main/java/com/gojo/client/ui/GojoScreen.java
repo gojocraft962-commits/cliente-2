@@ -1,14 +1,138 @@
 package com.gojo.client.ui;
-import com.gojo.client.config.ConfigManager; import com.gojo.client.module.*; import net.minecraft.client.gui.GuiGraphics; import net.minecraft.client.gui.components.Button; import net.minecraft.client.gui.screens.Screen; import net.minecraft.network.chat.Component; import java.util.*;
+
+import com.gojo.client.config.ConfigManager;
+import com.gojo.client.module.Category;
+import com.gojo.client.module.Module;
+import com.gojo.client.module.Modules;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import java.util.*;
+
 public final class GojoScreen extends Screen {
- private Category selected=Category.MOVEMENT; private String search=""; private int panelX,panelY,panelW=430,panelH=300;
- private static final int BG=0xF20B0D16,PANEL=0xFF111827,BLUE=0xFF399BFF,PURPLE=0xFF8B5CF6;
- public GojoScreen(){super(Component.literal("GOJO CLIENT"));}
- @Override protected void init(){panelX=(width-panelW)/2;panelY=(height-panelH)/2;int y=panelY+58;
- for(Category c:Category.values()){final Category target=c;addRenderableWidget(Button.builder(Component.literal(c.name()),b->{selected=target;rebuildWidgets();}).bounds(panelX+12,y,92,22).build());y+=27;}
- int index=0;for(Module m:Modules.in(selected)){if(!m.name().toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT)))continue;final Module target=m;int rowY=panelY+62+index*31;if(rowY>panelY+panelH-48)break;addRenderableWidget(Button.builder(Component.literal(m.name()+(m.enabled()?"  [ON]":"  [OFF]")),b->{target.toggle();ConfigManager.save();rebuildWidgets();}).bounds(panelX+122,rowY,190,24).build());index++;}
- addRenderableWidget(Button.builder(Component.literal("SAVE"),b->ConfigManager.save()).bounds(panelX+panelW-92,panelY+panelH-34,78,22).build());
- addRenderableWidget(Button.builder(Component.literal("CLOSE"),b->onClose()).bounds(panelX+panelW-178,panelY+panelH-34,78,22).build());}
- @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta){renderBackground(g,mouseX,mouseY,delta);g.fill(panelX,panelY,panelX+panelW,panelY+panelH,BG);g.fill(panelX,panelY,panelX+panelW,panelY+3,BLUE);g.fill(panelX,panelY+3,panelX+panelW,panelY+48,PANEL);g.drawString(font,"GOJO CLIENT",panelX+16,panelY+15,0xFFFFFFFF,false);g.drawString(font,"1.21.11 | FABRIC | RIGHT SHIFT",panelX+16,panelY+32,0xFF9CA3AF,false);g.fill(panelX+111,panelY+54,panelX+112,panelY+panelH-42,0xFF293244);g.drawString(font,"MODULES / "+selected.name(),panelX+122,panelY+49,PURPLE,false);g.drawString(font,"Ative os módulos clicando nos botões.",panelX+122,panelY+panelH-53,0xFF9CA3AF,false);super.render(g,mouseX,mouseY,delta);}
- @Override public boolean isPauseScreen(){return false;} @Override public void onClose(){ConfigManager.save();super.onClose();}
+    private Category selected = Category.COMBAT;
+    private String search = "";
+    private int x, y, w, h, sidebar, right;
+    private boolean searchFocused;
+    private static final int BG=0xF0080A12, PANEL=0xFF10121D, CARD=0xFF171A28;
+    private static final int PURPLE=0xFF8B35FF, PURPLE_DARK=0xFF4B16A8;
+    private static final int TEXT=0xFFF5F3FF, MUTED=0xFFAAA5C2, LINE=0xFF29243D;
+
+    public GojoScreen(){ super(Component.literal("GOJO CLIENT")); }
+
+    @Override protected void init() {
+        w=Math.min(1160,width-32); h=Math.min(610,height-32);
+        x=(width-w)/2; y=(height-h)/2; sidebar=184; right=220;
+    }
+
+    private List<Module> visibleModules(){
+        return Modules.in(selected).stream()
+            .filter(m -> m.name().toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT))
+                || m.description().toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT))).toList();
+    }
+
+    @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta){
+        renderBackground(g,mouseX,mouseY,delta);
+        g.fill(x-3,y-3,x+w+3,y+h+3,0xB34A1C91);
+        g.fill(x,y,x+w,y+h,BG);
+        g.fill(x,y,x+sidebar,y+h,0xFF090B14);
+        g.fill(x+sidebar,y,x+sidebar+1,y+h,LINE);
+        g.fill(x+w-right,y,x+w-right+1,y+h,LINE);
+
+        // Brand and navigation
+        g.drawString(font,"♛",x+22,y+20,PURPLE,false);
+        g.drawString(font,"GOJO",x+50,y+17,TEXT,false);
+        g.drawString(font,"CLIENT",x+50,y+34,PURPLE,false);
+        g.drawString(font,"MINECRAFT 1.21.11",x+20,y+65,MUTED,false);
+        String[] names={"COMBAT","MOVEMENT","RENDER","PLAYER","WORLD","HUD"};
+        String[] symbols={"⚔","➤","◈","●","◎","▥"};
+        int navY=y+96;
+        for(int i=0;i<names.length;i++){
+            Category c=Category.values()[i]; boolean active=selected==c;
+            int ny=navY+i*39;
+            if(active){g.fill(x+10,ny-7,x+sidebar-10,ny+24,0xFF381078);g.fill(x+10,ny-7,x+13,ny+24,PURPLE);}
+            g.drawString(font,symbols[i],x+22,ny+2,active?0xFFFFFFFF:PURPLE,false);
+            g.drawString(font,names[i],x+45,ny+2,active?TEXT:MUTED,false);
+        }
+        g.drawString(font,"CONFIGURAÇÕES",x+20,y+h-58,MUTED,false);
+        g.drawString(font,"SOBRE  •  GOJO CLIENT",x+20,y+h-36,PURPLE,false);
+
+        // Search and main heading
+        int mainX=x+sidebar+18, mainW=w-sidebar-right-36;
+        g.fill(mainX,y+17,mainX+mainW,y+54,CARD);
+        g.drawString(font,"⌕",mainX+12,y+29,PURPLE,false);
+        g.drawString(font,(searchFocused?"Pesquisar: "+search+"_":(search.isEmpty()?"Pesquisar módulos...":search)),mainX+34,y+30,MUTED,false);
+        g.drawString(font,selected.name(),mainX,y+72,PURPLE,false);
+        g.drawString(font,"Ative e configure os módulos do cliente",mainX,y+88,MUTED,false);
+
+        // Module cards
+        List<Module> modules=visibleModules();
+        int gap=10, cols=3, cardW=Math.max(110,(mainW-gap*(cols-1))/cols), cardH=76;
+        for(int i=0;i<modules.size();i++){
+            Module m=modules.get(i); int col=i%cols,row=i/cols;
+            int cx=mainX+col*(cardW+gap), cy=y+108+row*(cardH+10);
+            g.fill(cx,cy,cx+cardW,cy+cardH,CARD);
+            g.fill(cx,cy,cx+cardW,cy+1,m.enabled()?PURPLE:LINE);
+            g.drawString(font,m.name(),cx+10,cy+12,TEXT,false);
+            String desc=m.description(); if(desc.length()>27)desc=desc.substring(0,26)+"…";
+            g.drawString(font,desc,cx+10,cy+30,MUTED,false);
+            int sx=cx+cardW-39, sy=cy+48;
+            g.fill(sx,sy,sx+28,sy+14,m.enabled()?PURPLE:0xFF39394A);
+            g.fill(sx+(m.enabled()?15:2),sy+2,sx+(m.enabled()?26:13),sy+12,0xFFFFFFFF);
+            g.drawString(font,m.enabled()?"ON":"OFF",cx+10,cy+52,m.enabled()?PURPLE: MUTED,false);
+        }
+        if(modules.isEmpty())g.drawString(font,"Nenhum módulo encontrado.",mainX,y+126,MUTED,false);
+
+        // Right information rail
+        int rx=x+w-right+14, rw=right-28;
+        g.fill(rx,y+18,rx+rw,y+148,CARD);
+        g.drawCenteredString(font,"♛  GOJO CLIENT",rx+rw/2,y+38,PURPLE);
+        g.drawCenteredString(font,"Mais desempenho.",rx+rw/2,y+70,TEXT);
+        g.drawCenteredString(font,"Mais controlo.",rx+rw/2,y+86,TEXT);
+        g.fill(rx,y+160,rx+rw,y+310,CARD);
+        g.drawString(font,"INFORMAÇÕES",rx+12,y+174,PURPLE,false);
+        var mc=net.minecraft.client.Minecraft.getInstance();
+        g.drawString(font,"FPS: "+mc.getFps(),rx+12,y+198,TEXT,false);
+        if(mc.player!=null){
+            g.drawString(font,"XYZ: "+(int)mc.player.getX()+" "+(int)mc.player.getY()+" "+(int)mc.player.getZ(),rx+12,y+218,TEXT,false);
+            g.drawString(font,"Mundo: "+(mc.level==null?"-":mc.level.dimension().location().getPath()),rx+12,y+238,MUTED,false);
+        } else g.drawString(font,"Mundo: menu",rx+12,y+218,MUTED,false);
+        g.drawString(font,"Módulos: "+Modules.all().size(),rx+12,y+258,TEXT,false);
+        g.drawString(font,"Fabric • Java 21",rx+12,y+278,MUTED,false);
+        g.fill(rx,y+322,rx+rw,y+382,CARD);
+        g.drawString(font,"NOTIFICAÇÕES",rx+12,y+337,PURPLE,false);
+        g.drawString(font,"GOJO CLIENT ativo",rx+12,y+359,TEXT,false);
+        g.drawString(font,"RIGHT SHIFT  •  FECHAR: ESC",x+sidebar+18,y+h-24,MUTED,false);
+        super.render(g,mouseX,mouseY,delta);
+    }
+
+    @Override public boolean mouseClicked(double mx,double my,int button){
+        if(button!=0)return super.mouseClicked(mx,my,button);
+        int navY=y+96;
+        for(int i=0;i<Category.values().length;i++){
+            int ny=navY+i*39;
+            if(mx>=x+10&&mx<=x+sidebar-10&&my>=ny-7&&my<=ny+24){selected=Category.values()[i];return true;}
+        }
+        int mainX=x+sidebar+18, mainW=w-sidebar-right-36, cols=3, gap=10;
+        int cardW=Math.max(110,(mainW-gap*2)/3),cardH=76;
+        List<Module> modules=visibleModules();
+        for(int i=0;i<modules.size();i++){
+            int col=i%cols,row=i/cols,cx=mainX+col*(cardW+gap),cy=y+108+row*(cardH+10);
+            if(mx>=cx&&mx<=cx+cardW&&my>=cy&&my<=cy+cardH){modules.get(i).toggle();ConfigManager.save();return true;}
+        }
+        searchFocused=mx>=mainX&&mx<=mainX+mainW&&my>=y+17&&my<=y+54;
+        return true;
+    }
+    @Override public boolean charTyped(char c,int modifiers){
+        if(searchFocused&&!Character.isISOControl(c)){search+=c;return true;}
+        return super.charTyped(c,modifiers);
+    }
+    @Override public boolean keyPressed(int key,int scanCode,int modifiers){
+        if(searchFocused&&key==256){searchFocused=false;return true;}
+        if(searchFocused&&key==259&&!search.isEmpty()){search=search.substring(0,search.length()-1);return true;}
+        if(key==256){onClose();return true;}
+        return super.keyPressed(key,scanCode,modifiers);
+    }
+    @Override public boolean isPauseScreen(){return false;}
+    @Override public void onClose(){ConfigManager.save();super.onClose();}
 }
