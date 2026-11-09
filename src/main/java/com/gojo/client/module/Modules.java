@@ -35,12 +35,12 @@ public final class Modules {
   add(new Module("Fly","Voo local experimental; pode ser corrigido pelo servidor.",Category.MOVEMENT){ {configure(1.0,0.2,3.0,0.2);} @Override public void onTick(Minecraft mc){fly(mc,value());} });
   add(new Module("Scaffold","Tenta colocar um bloco sob os pés ao caminhar.",Category.MOVEMENT){ {configure(1.0,1.0,4.0,1.0);} @Override public void onTick(Minecraft mc){scaffold(mc);} });
 
-  add(new Module("Player ESP","Realça jogadores com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.player.Player && e!=mc.player);}});
-  add(new Module("Mob ESP","Realça mobs com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof Mob);}});
-  add(new Module("Entity ESP","Realça entidades vivas próximas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
-  add(new Module("Item ESP","Realça itens largados no mundo.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof net.minecraft.world.entity.item.ItemEntity);}});
-  add(new Module("Tracers","Realce por brilho de entidades; linhas 3D ainda não implementadas.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
-  add(new Module("Nametags","Mantém nomes padrão e realça entidades.",Category.RENDER){@Override public void onTick(Minecraft mc){glowEntities(mc,e->e instanceof LivingEntity && e!=mc.player);}});
+  add(new Module("Player ESP","Realça jogadores com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
+  add(new Module("Mob ESP","Realça mobs com brilho.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
+  add(new Module("Entity ESP","Realça entidades vivas próximas.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
+  add(new Module("Item ESP","Realça itens largados no mundo.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
+  add(new Module("Tracers","Realce por brilho de entidades; linhas 3D ainda não implementadas.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
+  add(new Module("Nametags","Mantém nomes padrão e realça entidades.",Category.RENDER){@Override public void onTick(Minecraft mc){}});
   add(new Module("Block Indicator","Destaca o bloco observado.",Category.RENDER){});
   add(new Module("Reach Display","Mostra a distância até o alvo focado.",Category.COMBAT){});
   add(new Module("Target Info","Exibe informações do alvo focado.",Category.COMBAT){});
