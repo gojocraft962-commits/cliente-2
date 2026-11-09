@@ -139,7 +139,7 @@ public final class GojoScreen extends Screen {
             if(mx>=cx&&mx<=cx+cardW&&my>=cy&&my<=cy+cardH){
                 Module module=modules.get(i);
                 if(module.configurable()&&my>=cy+64&&mx>=cx+cardW-80&&mx<=cx+cardW-30){
-                    module.adjustValue(mx<cx+cardW-55?-1:1);
+                    module.adjustValue(mx<cx+cardW-55?-1:1);ConfigManager.save();
                 }else if(my<cy+62){module.toggle();ConfigManager.save();}
                 return true;
             }
