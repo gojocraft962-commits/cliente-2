@@ -25,7 +25,7 @@ public final class GojoScreen extends Screen {
     public GojoScreen(){ super(Component.literal("GOJO CLIENT")); }
 
     @Override protected void init() {
-        w=Math.min(1160,width-32); h=Math.min(610,height-32);
+        w=Math.max(1,Math.min(1160,width-32)); h=Math.max(1,Math.min(610,height-32));
         x=(width-w)/2; y=(height-h)/2; sidebar=184; right=220;
     }
 
@@ -36,7 +36,8 @@ public final class GojoScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta){
-        renderBackground(g,mouseX,mouseY,delta);
+        // Pojav/OpenGL compatibility: avoid vanilla panorama and blur shaders.
+        g.fill(0,0,width,height,0xA0000000);
         g.fill(x-3,y-3,x+w+3,y+h+3,0xB34A1C91);
         g.fill(x,y,x+w,y+h,BG);
         g.fill(x,y,x+sidebar,y+h,0xFF090B14);
@@ -44,12 +45,12 @@ public final class GojoScreen extends Screen {
         g.fill(x+w-right,y,x+w-right+1,y+h,LINE);
 
         // Brand and navigation
-        g.drawString(font,"♛",x+22,y+20,PURPLE,false);
+        g.drawString(font,"G",x+22,y+20,PURPLE,false);
         g.drawString(font,"GOJO",x+50,y+17,TEXT,false);
         g.drawString(font,"CLIENT",x+50,y+34,PURPLE,false);
         g.drawString(font,"MINECRAFT 1.21.11",x+20,y+65,MUTED,false);
         String[] names={"COMBAT","MOVEMENT","RENDER","PLAYER","WORLD","HUD"};
-        String[] symbols={"⚔","➤","◈","●","◎","▥"};
+        String[] symbols={"C","M","R","P","W","H"};
         int navY=y+96;
         for(int i=0;i<names.length;i++){
             Category c=Category.values()[i]; boolean active=selected==c;
@@ -64,7 +65,7 @@ public final class GojoScreen extends Screen {
         // Search and main heading
         int mainX=x+sidebar+18, mainW=w-sidebar-right-36;
         g.fill(mainX,y+17,mainX+mainW,y+54,CARD);
-        g.drawString(font,"⌕",mainX+12,y+29,PURPLE,false);
+        g.drawString(font,">",mainX+12,y+29,PURPLE,false);
         g.drawString(font,(searchFocused?"Pesquisar: "+search+"_":(search.isEmpty()?"Pesquisar módulos...":search)),mainX+34,y+30,MUTED,false);
         g.drawString(font,selected.name(),mainX,y+72,PURPLE,false);
         g.drawString(font,"Ative e configure os módulos do cliente",mainX,y+88,MUTED,false);
@@ -100,7 +101,7 @@ public final class GojoScreen extends Screen {
         // Right information rail
         int rx=x+w-right+14, rw=right-28;
         g.fill(rx,y+18,rx+rw,y+148,CARD);
-        g.drawCenteredString(font,"♛  GOJO CLIENT",rx+rw/2,y+38,PURPLE);
+        g.drawCenteredString(font,"GOJO CLIENT",rx+rw/2,y+38,PURPLE);
         g.drawCenteredString(font,"Mais desempenho.",rx+rw/2,y+70,TEXT);
         g.drawCenteredString(font,"Mais controlo.",rx+rw/2,y+86,TEXT);
         g.fill(rx,y+160,rx+rw,y+310,CARD);
