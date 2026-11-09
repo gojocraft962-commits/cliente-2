@@ -70,7 +70,7 @@ public final class GojoScreen extends Screen {
 
         // Module cards
         List<Module> modules=visibleModules();
-        int gap=10, cols=3, cardW=Math.max(110,(mainW-gap*(cols-1))/cols), cardH=76;
+        int gap=10, cols=3, cardW=Math.max(110,(mainW-gap*(cols-1))/cols), cardH=90;
         for(int i=0;i<modules.size();i++){
             Module m=modules.get(i); int col=i%cols,row=i/cols;
             int cx=mainX+col*(cardW+gap), cy=y+108+row*(cardH+10);
@@ -83,6 +83,13 @@ public final class GojoScreen extends Screen {
             g.fill(sx,sy,sx+28,sy+14,m.enabled()?PURPLE:0xFF39394A);
             g.fill(sx+(m.enabled()?15:2),sy+2,sx+(m.enabled()?26:13),sy+12,0xFFFFFFFF);
             g.drawString(font,m.enabled()?"ON":"OFF",cx+10,cy+52,m.enabled()?PURPLE: MUTED,false);
+            if(m.configurable()){
+                g.drawString(font,"Valor: "+String.format(Locale.ROOT,"%.1f",m.value()),cx+10,cy+70,MUTED,false);
+                g.fill(cx+cardW-76,cy+66,cx+cardW-58,cy+83,0xFF343044);
+                g.fill(cx+cardW-52,cy+66,cx+cardW-34,cy+83,0xFF343044);
+                g.drawCenteredString(font,"-",cx+cardW-67,cy+70,TEXT);
+                g.drawCenteredString(font,"+",cx+cardW-43,cy+70,TEXT);
+            }
         }
         if(modules.isEmpty())g.drawString(font,"Nenhum módulo encontrado.",mainX,y+126,MUTED,false);
 
@@ -119,11 +126,17 @@ public final class GojoScreen extends Screen {
             if(mx>=x+10&&mx<=x+sidebar-10&&my>=ny-7&&my<=ny+24){selected=Category.values()[i];return true;}
         }
         int mainX=x+sidebar+18, mainW=w-sidebar-right-36, cols=3, gap=10;
-        int cardW=Math.max(110,(mainW-gap*2)/3),cardH=76;
+        int cardW=Math.max(110,(mainW-gap*2)/3),cardH=90;
         List<Module> modules=visibleModules();
         for(int i=0;i<modules.size();i++){
             int col=i%cols,row=i/cols,cx=mainX+col*(cardW+gap),cy=y+108+row*(cardH+10);
-            if(mx>=cx&&mx<=cx+cardW&&my>=cy&&my<=cy+cardH){modules.get(i).toggle();ConfigManager.save();return true;}
+            if(mx>=cx&&mx<=cx+cardW&&my>=cy&&my<=cy+cardH){
+                Module module=modules.get(i);
+                if(module.configurable()&&my>=cy+64&&mx>=cx+cardW-80&&mx<=cx+cardW-30){
+                    module.adjustValue(mx<cx+cardW-55?-1:1);
+                }else if(my<cy+62){module.toggle();ConfigManager.save();}
+                return true;
+            }
         }
         searchFocused=mx>=mainX&&mx<=mainX+mainW&&my>=y+17&&my<=y+54;
         return true;
