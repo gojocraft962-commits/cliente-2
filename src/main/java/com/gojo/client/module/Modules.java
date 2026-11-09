@@ -56,6 +56,54 @@ public final class Modules {
   add(new Module("Durability","Exibe durabilidade dos equipamentos.",Category.HUD){});
   add(new Module("Clock","Exibe relógio local.",Category.HUD){});
   add(new Module("Server Info","Exibe informações da sessão.",Category.HUD){});
+
+  // Additional client modules: listed transparently while their full implementations are developed.
+  String[][] more={
+   {"COMBAT","Trigger Bot","Ataca o alvo observado automaticamente — em desenvolvimento."},
+   {"COMBAT","Aim Assist","Assistência de mira configurável — em desenvolvimento."},
+   {"COMBAT","Criticals","Controle de ataques críticos — em desenvolvimento."},
+   {"COMBAT","Auto Totem","Gerenciamento automático de totem — em desenvolvimento."},
+   {"COMBAT","Hit Sounds","Som personalizado ao acertar — em desenvolvimento."},
+   {"COMBAT","Anti Knockback","Controle de repulsão — em desenvolvimento."},
+   {"MOVEMENT","Step","Ajuste de subida de blocos — em desenvolvimento."},
+   {"MOVEMENT","Spider","Escalada de paredes — em desenvolvimento."},
+   {"MOVEMENT","No Slow","Redução de lentidão — em desenvolvimento."},
+   {"MOVEMENT","Safe Walk","Evita cair de bordas — em desenvolvimento."},
+   {"MOVEMENT","Elytra Helper","Ferramentas para voo com élitros — em desenvolvimento."},
+   {"MOVEMENT","Auto Walk","Movimento contínuo — em desenvolvimento."},
+   {"MOVEMENT","Jesus","Movimento sobre líquidos — em desenvolvimento."},
+   {"RENDER","Storage ESP","Realce de baús e armazenamentos — em desenvolvimento."},
+   {"RENDER","Chest ESP","Realce de baús — em desenvolvimento."},
+   {"RENDER","Shulker ESP","Realce de caixas de shulker — em desenvolvimento."},
+   {"RENDER","Freecam","Câmara livre — em desenvolvimento."},
+   {"RENDER","Zoom","Ampliação de visão — em desenvolvimento."},
+   {"RENDER","Search","Realce de blocos escolhidos — em desenvolvimento."},
+   {"RENDER","No Render","Ocultação seletiva de efeitos — em desenvolvimento."},
+   {"RENDER","Trails","Rastros visuais — em desenvolvimento."},
+   {"PLAYER","Auto Eat","Consome comida quando necessário — em desenvolvimento."},
+   {"PLAYER","Fast Use","Uso rápido de itens — em desenvolvimento."},
+   {"PLAYER","Auto Reconnect","Reconexão automática — em desenvolvimento."},
+   {"PLAYER","Potion Manager","Gestão de poções — em desenvolvimento."},
+   {"PLAYER","Anti AFK","Evita inatividade — em desenvolvimento."},
+   {"WORLD","Nuker","Quebra de blocos em área — em desenvolvimento."},
+   {"WORLD","Auto Mine","Mineração assistida — em desenvolvimento."},
+   {"WORLD","Build Helper","Ferramentas de construção — em desenvolvimento."},
+   {"WORLD","Waypoints","Marcação de locais — em desenvolvimento."},
+   {"WORLD","World Border","Indicador dos limites do mundo — em desenvolvimento."},
+   {"WORLD","Seed Info","Informações da semente — em desenvolvimento."},
+   {"HUD","Armor HUD","Mostra armadura equipada — em desenvolvimento."},
+   {"HUD","Totem HUD","Indicador de totens — em desenvolvimento."},
+   {"HUD","Effects HUD","Mostra efeitos ativos — em desenvolvimento."},
+   {"HUD","Compass HUD","Bússola na tela — em desenvolvimento."},
+   {"HUD","Direction HUD","Mostra direção — em desenvolvimento."},
+   {"HUD","Keystrokes","Mostra teclas pressionadas — em desenvolvimento."},
+   {"HUD","Crosshair","Mira configurável — em desenvolvimento."},
+   {"HUD","Watermark","Marca GOJO no HUD — em desenvolvimento."},
+   {"HUD","Module List","Lista módulos ativos — em desenvolvimento."},
+   {"HUD","Notifications","Notificações de módulos — em desenvolvimento."}
+  };
+  for(String[] e:more)add(new Module(e[1],e[2],Category.valueOf(e[0])){});
+
  }
  private static void attackNearby(Minecraft mc,double range,boolean mobsOnly){
   if(mc.player==null||mc.level==null||mc.gameMode==null||mc.screen!=null)return;
