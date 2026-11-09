@@ -31,6 +31,8 @@ public final class Modules {
   add(new Module("Kill Aura Mobs","Ataca automaticamente mobs próximos.",Category.COMBAT){ {configure(4.0,1.0,8.0,0.5);} @Override public void onTick(Minecraft mc){attackNearby(mc,value(),true);} });
   add(new Module("Aimbot","Aponta para o alvo vivo mais próximo.",Category.COMBAT){ {configure(5.0,1.0,12.0,0.5);} @Override public void onTick(Minecraft mc){aimAtNearest(mc,value(),false);} });
   add(new Module("Auto Click","Repete o ataque enquanto o botão de ataque estiver pressionado.",Category.COMBAT){ {configure(8.0,2.0,20.0,1.0);} @Override public void onTick(Minecraft mc){autoClick(mc,value());} });
+  add(new Module("Player Hitbox","Aumenta localmente a área de seleção de jogadores; servidores controlam a hitbox real.",Category.COMBAT){ {configure(0.3,0.0,1.5,0.1);} });
+  add(new Module("Mob Hitbox","Aumenta localmente a área de seleção de mobs; servidores controlam a hitbox real.",Category.COMBAT){ {configure(0.3,0.0,1.5,0.1);} });
 
   add(new Module("Fly","Voo local experimental; pode ser corrigido pelo servidor.",Category.MOVEMENT){ {configure(1.0,0.2,3.0,0.2);} @Override public void onTick(Minecraft mc){fly(mc,value());} });
   add(new Module("Scaffold","Tenta colocar um bloco sob os pés ao caminhar.",Category.MOVEMENT){ {configure(1.0,1.0,4.0,1.0);} @Override public void onTick(Minecraft mc){scaffold(mc);} });
@@ -107,15 +109,23 @@ public final class Modules {
  }
  private static void attackNearby(Minecraft mc,double range,boolean mobsOnly){
   if(mc.player==null||mc.level==null||mc.gameMode==null||mc.screen!=null)return;
-  LivingEntity target=mc.level.getEntitiesOfClass(LivingEntity.class,mc.player.getBoundingBox().inflate(range),
-    e->e!=mc.player&&e.isAlive()&&(!mobsOnly||e instanceof Mob))
+  LivingEntity target=mc.level.getEntitiesOfClass(LivingEntity.class,mc.player.getBoundingBox().inflate(range+1.5),
+    e->e!=mc.player&&e.isAlive()&&(!mobsOnly||e instanceof Mob)&&isInsideExpandedTarget(mc,e,range))
     .stream().min(Comparator.comparingDouble(e->e.distanceToSqr(mc.player))).orElse(null);
   if(target!=null&&mc.player.getAttackStrengthScale(0.0F)>=1.0F)mc.gameMode.attack(mc.player,target);
  }
+
+ private static boolean isInsideExpandedTarget(Minecraft mc,LivingEntity target,double range){
+  double extra=0.0;
+  if(target instanceof net.minecraft.world.entity.player.Player){Module m=find("Player Hitbox");if(m!=null&&m.enabled())extra=m.value();}
+  else if(target instanceof Mob){Module m=find("Mob Hitbox");if(m!=null&&m.enabled())extra=m.value();}
+  AABB attackArea=mc.player.getBoundingBox().inflate(range);
+  return target.getBoundingBox().inflate(extra).intersects(attackArea);
+ }
  private static void aimAtNearest(Minecraft mc,double range,boolean mobsOnly){
   if(mc.player==null||mc.level==null||mc.screen!=null)return;
-  LivingEntity target=mc.level.getEntitiesOfClass(LivingEntity.class,mc.player.getBoundingBox().inflate(range),
-    e->e!=mc.player&&e.isAlive()&&(!mobsOnly||e instanceof Mob))
+  LivingEntity target=mc.level.getEntitiesOfClass(LivingEntity.class,mc.player.getBoundingBox().inflate(range+1.5),
+    e->e!=mc.player&&e.isAlive()&&(!mobsOnly||e instanceof Mob)&&isInsideExpandedTarget(mc,e,range))
     .stream().min(Comparator.comparingDouble(e->e.distanceToSqr(mc.player))).orElse(null);
   if(target!=null){
    Vec3 diff=target.getEyePosition().subtract(mc.player.getEyePosition());
